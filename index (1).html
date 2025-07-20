@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>project</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('https://i.supaimg.com/c12ddb8c-2fa5-493f-954f-b9484021b166.webp');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: white;
+        }
+
+        .search-container {
+            text-align: center;
+            background: rgba(0,0,0,0.6); /* خلفية شفافة */
+            padding: 30px;
+            border-radius: 15px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 250px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #ED1414;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="search-container">
+        <h2>بحث عن منتج</h2>
+        <div style="margin-top: 20px;">
+            <input type="text" id="productInput" placeholder="ادخل اسم المنتج أو  QR Code">
+            <br>
+            <button onclick="searchProduct()">بحث</button>
+        </div>
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const productDatabase = {
+            1: { id: 1, name: "Laptop", price: 1500.00, category: "Electronics" },
+            2: { id: 2, name: "Book", price: 15.00, category: "Books"},
+            3: { id: 3, name: "Strawberry", price: 20.00, category: "fruit"}, 
+            4: { id: 4, name: "bmw", price: 1000000000, category: "car"},
+            5: { id: 5, name: "بطاطس", price: 10.00, category:"خضراوات"},
+            6: { id: 6, name: "iphon", price: 20.00, category: "elcronic"}
+        };
+
+        function searchProduct() {
+            const input = document.getElementById("productInput").value.trim();
+            const resultDiv = document.getElementById("result");
+
+            if (!input) {
+                resultDiv.innerText = "الرجاء إدخال اسم المنتج أو QR Code";
+                return;
+            }
+
+            if (input.startsWith("QR_")) {
+                const productId = parseInt(input.substring(3));
+                if (productDatabase[productId]) {
+                    displayProductInfo(productDatabase[productId]);
+                } else {
+                    resultDiv.innerText = "عذراً، المنتج المطلوب غير موجود";
+                }
+            } else {
+                let foundProduct = null;
+                for (const id in productDatabase) {
+                    const product = productDatabase[id];
+                    if (product.name.toLowerCase() === input.toLowerCase() || product.id === parseInt(input)) {
+                        foundProduct = product;
+                        break;
+                    }
+                }
+                if (foundProduct) {
+                    displayProductInfo(foundProduct);
+                } else {
+                    resultDiv.innerText = "عذراً، المنتج المطلوب غير موجود";
+                }
+            }
+        }
+
+        function displayProductInfo(product) {
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `
+                <strong>رقم المنتج:</strong> ${product.id}<br>
+                <strong>الاسم:</strong> ${product.name}<br>
+                <strong>السعر:</strong> $${product.price}<br>
+                <strong>الفئة:</strong> ${product.category}<br>
+            `;
+        }
+    </script>
+
+</body>
+</html>
