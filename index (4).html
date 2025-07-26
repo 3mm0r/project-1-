@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>Transformation systems manual to computerized (Databases)</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-image: url('https://i.supaimg.com/c12ddb8c-2fa5-493f-954f-b9484021b166.webp');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: #000;
+      text-align: center;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: white;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .green { background-color: #4CAF50; }
+    .blue { background-color: #2196F3; }
+    .cyan { background-color: #00BCD4; }
+    .red { background-color: #f44336; }
+    .yellow { background-color: #ff9800; }
+    .purple { background-color: #9c27b0; }
+
+    .form-section {
+      display: none;
+      margin-top: 20px;
+    }
+
+    input {
+      margin: 5px;
+      padding: 8px;
+    }
+
+    table {
+      width: 90%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background-color: rgba(255, 255, 255, 0.95);
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
+
+    th {
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 style="color:white;">project</h1>
+    <div class="buttons">
+      <button class="green" onclick="toggleForm('add')">إضافة منتج</button>
+      <button class="cyan" onclick="toggleForm('edit')">تعديل منتج</button>
+      <button class="red" onclick="toggleForm('sell')">تم البيع</button>
+      <button class="yellow" onclick="toggleForm('return')">تم الإرجاع</button>
+      <button class="purple" onclick="toggleForm('show')">عرض المنتجات</button>
+      <button class="blue" onclick="toggleForm('search')">بحث</button>
+    </div>
+
+    <!-- إضافة منتج -->
+    <div id="add" class="form-section">
+      <input id="addQR" placeholder="QR">
+      <input id="addName" placeholder="اسم المنتج">
+      <input id="addPrice" placeholder="السعر">
+      <input id="addCategory" placeholder="الفئة">
+      <input id="addQuantity" placeholder="الكمية">
+      <button onclick="addProduct()">إضافة</button>
+    </div>
+
+    <!-- تعديل منتج -->
+    <div id="edit" class="form-section">
+      <input id="editQR" placeholder="QR">
+      <input id="editName" placeholder="اسم المنتج الجديد">
+      <input id="editPrice" placeholder="السعر الجديد">
+      <input id="editCategory" placeholder="الفئة الجديدة">
+      <input id="editQuantity" placeholder="الكمية الجديدة">
+      <button onclick="editProduct()">تعديل</button>
+    </div>
+
+    <!-- تم البيع -->
+    <div id="sell" class="form-section">
+      <input id="sellQR" placeholder="QR">
+      <input id="sellQuantity" placeholder="الكمية المباعة">
+      <button onclick="sellProduct()">بيع</button>
+    </div>
+
+    <!-- تم الإرجاع -->
+    <div id="return" class="form-section">
+      <input id="returnQR" placeholder="QR">
+      <input id="returnQuantity" placeholder="الكمية المرجعة">
+      <button onclick="returnProduct()">إرجاع</button>
+    </div>
+
+    <!-- البحث -->
+    <div id="search" class="form-section">
+      <input id="searchQR" placeholder="QR أو الاسم">
+      <button onclick="searchProduct()">بحث</button>
+    </div>
+
+    <!-- عرض المنتجات -->
+    <div id="show" class="form-section">
+      <table id="productTable">
+        <thead>
+          <tr>
+            <th>QR</th>
+            <th>الاسم</th>
+            <th>السعر</th>
+            <th>الفئة</th>
+            <th>الكمية</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- سجل الأحداث -->
+    <h2 style="color:white;">سجل الأحداث</h2>
+    <table id="eventTable">
+      <thead>
+        <tr>
+          <th>الوقت</th>
+          <th>الحدث</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    let database = JSON.parse(localStorage.getItem('products')) || [];
+
+    function saveToLocalStorage() {
+      localStorage.setItem('products', JSON.stringify(database));
+    }
+
+    function toggleForm(id) {
+      const targetForm = document.getElementById(id);
+      const isVisible = targetForm.style.display === 'block';
+
+      // قفل كل الفورمات
+      document.querySelectorAll('.form-section').forEach(form => {
+        form.style.display = 'none';
+      });
+
+      // لو الفورم كانت مش باينة خليه يفتحها
+      if (!isVisible) {
+        targetForm.style.display = 'block';
+        if (id === 'show') displayProducts();
+      }
+    }
+
+    function logEvent(message) {
+      const table = document.getElementById("eventTable").querySelector("tbody");
+      const time = new Date().toLocaleTimeString();
+      const row = `<tr><td>${time}</td><td>${message}</td></tr>`;
+      table.innerHTML = row + table.innerHTML;
+    }
+
+    function addProduct() {
+      const product = {
+        qr: addQR.value,
+        name: addName.value,
+        price: parseFloat(addPrice.value),
+        category: addCategory.value,
+        quantity: parseInt(addQuantity.value)
+      };
+      database.push(product);
+      saveToLocalStorage();
+      logEvent(`تمت إضافة المنتج (${product.name})`);
+      displayProducts();
+    }
+
+    function editProduct() {
+      const index = database.findIndex(p => p.qr === editQR.value);
+      if (index !== -1) {
+        database[index].name = editName.value;
+        database[index].price = parseFloat(editPrice.value);
+        database[index].category = editCategory.value;
+        database[index].quantity = parseInt(editQuantity.value);
+        saveToLocalStorage();
+        logEvent(`تم تعديل المنتج (${database[index].name})`);
+        displayProducts();
+      } else {
+        logEvent(`لم يتم العثور على منتج للتعديل`);
+      }
+    }
+
+    function sellProduct() {
+      const index = database.findIndex(p => p.qr === sellQR.value);
+      const amount = parseInt(sellQuantity.value);
+      if (index !== -1 && database[index].quantity >= amount) {
+        database[index].quantity -= amount;
+        saveToLocalStorage();
+        logEvent(`تم بيع (${amount}) من المنتج ${database[index].name}`);
+        displayProducts();
+      } else {
+        logEvent(`كمية غير كافية أو المنتج غير موجود`);
+      }
+    }
+
+    function returnProduct() {
+      const index = database.findIndex(p => p.qr === returnQR.value);
+      const amount = parseInt(returnQuantity.value);
+      if (index !== -1) {
+        database[index].quantity += amount;
+        saveToLocalStorage();
+        logEvent(`تم إرجاع (${amount}) من المنتج ${database[index].name}`);
+        displayProducts();
+      } else {
+        logEvent(`المنتج غير موجود للإرجاع`);
+      }
+    }
+
+    function searchProduct() {
+      const keyword = searchQR.value.toLowerCase();
+      const results = database.filter(p =>
+        p.qr.toLowerCase().includes(keyword) || p.name.toLowerCase().includes(keyword)
+      );
+      const table = document.getElementById("productTable").querySelector("tbody");
+
+      if (results.length > 0) {
+        table.innerHTML = results.map(p => `
+          <tr>
+            <td>${p.qr}</td>
+            <td>${p.name}</td>
+            <td>${p.price}</td>
+            <td>${p.category}</td>
+            <td>${p.quantity}</td>
+          </tr>
+        `).join('');
+        logEvent(`تم العثور على نتائج للبحث (${keyword})`);
+      } else {
+        table.innerHTML = `<tr><td colspan="5" style="color:red;">المنتج المطلوب غير موجود</td></tr>`;
+        logEvent(`البحث (${keyword}): المنتج غير موجود`);
+      }
+
+      toggleForm('show');
+    }
+
+    function displayProducts() {
+      const table = document.getElementById("productTable").querySelector("tbody");
+      table.innerHTML = database.map(p => `
+        <tr>
+          <td>${p.qr}</td>
+          <td>${p.name}</td>
+          <td>${p.price}</td>
+          <td>${p.category}</td>
+          <td>${p.quantity}</td>
+        </tr>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
